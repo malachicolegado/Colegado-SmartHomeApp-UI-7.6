@@ -1,11 +1,22 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Link } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DeviceTile } from '@/components/device-tile';
 import { GatewayBanner } from '@/components/gateway-banner';
-import { HomeRoom, Palette } from '@/constants/smart-home';
+import { type IconName } from '@/components/icon-badge';
+import { HomeRoom, Palette, Shadow } from '@/constants/smart-home';
 import { formatTemperature, useIoT } from '@/context/IoTContext';
+
+function HeroStat({ icon, value, label }: { icon: IconName; value: string; label: string }) {
+  return (
+    <View style={styles.stat}>
+      <MaterialCommunityIcons name={icon} size={18} color={Palette.muted} />
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
 
 export default function DashboardScreen() {
   const {
@@ -24,16 +35,19 @@ export default function DashboardScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.titleRow}>
-        <Text style={styles.title}>Smart Home</Text>
+        <View style={styles.titleText}>
+          <Text style={styles.eyebrow}>Welcome home</Text>
+          <Text style={styles.title}>Smart Home</Text>
+        </View>
         <Link href="/settings" asChild>
-          <Pressable hitSlop={12}>
-            <Ionicons name="settings-outline" size={28} color={Palette.text} />
+          <Pressable hitSlop={12} style={styles.iconButton}>
+            <MaterialCommunityIcons name="cog-outline" size={22} color={Palette.muted} />
           </Pressable>
         </Link>
       </View>
 
       <View style={styles.gatewayRow}>
-        <View style={[styles.dot, { backgroundColor: gatewayConnected ? '#2E9E4F' : Palette.danger }]} />
+        <View style={[styles.dot, { backgroundColor: gatewayConnected ? Palette.success : Palette.danger }]} />
         <Text style={styles.gatewayText}>
           Gateway {gatewayConnected ? 'connected' : 'disconnected'} · {activeCount} of {devices.length}{' '}
           devices on
@@ -43,28 +57,46 @@ export default function DashboardScreen() {
       <GatewayBanner />
 
       <Link href="/sensors" asChild>
-        <Pressable style={styles.thermostat}>
-          <Ionicons name="thermometer-outline" size={40} color={Palette.text} />
-          {sensorData ? (
-            <Text style={styles.temperature}>
-              {formatTemperature(sensorData.temperature, temperatureUnit)}
-            </Text>
-          ) : sensorsLoading ? (
-            <ActivityIndicator size="large" color={Palette.text} />
-          ) : (
-            <Text style={styles.temperature}>--</Text>
-          )}
-          <Text style={styles.room}>{HomeRoom}</Text>
-          {sensorData ? (
-            <Text style={styles.subReading}>
-              {sensorData.humidity} % humidity · {sensorData.lightLevel} lux
-            </Text>
-          ) : null}
+        <Pressable style={styles.hero}>
+          <View style={styles.heroTop}>
+            <Text style={styles.room}>{HomeRoom}</Text>
+            <MaterialCommunityIcons name="home-thermometer-outline" size={22} color={Palette.accent} />
+          </View>
+
+          <View style={styles.heroReading}>
+            {sensorData ? (
+              <Text style={styles.temperature}>
+                {formatTemperature(sensorData.temperature, temperatureUnit)}
+              </Text>
+            ) : sensorsLoading ? (
+              <ActivityIndicator size="large" color={Palette.accent} />
+            ) : (
+              <Text style={styles.temperature}>--</Text>
+            )}
+          </View>
+
+          <View style={styles.heroStats}>
+            <HeroStat
+              icon="water-percent"
+              value={sensorData ? `${sensorData.humidity} %` : '--'}
+              label="Humidity"
+            />
+            <HeroStat
+              icon="white-balance-sunny"
+              value={sensorData ? `${sensorData.lightLevel} lux` : '--'}
+              label="Light"
+            />
+          </View>
         </Pressable>
       </Link>
 
+      <Text style={styles.sectionTitle}>Quick Controls</Text>
+
       {devicesLoading && devices.length === 0 ? (
-        <Text style={styles.loading}>Loading devices...</Text>
+        <View style={styles.loading}>
+          <ActivityIndicator color={Palette.accent} />
+          <Text style={styles.loadingText}>Loading devices...</Text>
+        </View>
       ) : (
         <View style={styles.grid}>
           <View style={styles.gridRow}>
@@ -89,8 +121,9 @@ export default function DashboardScreen() {
       )}
 
       <Link href="/devices" asChild>
-        <Pressable>
-          <Text style={styles.viewAll}>View All Devices →</Text>
+        <Pressable style={styles.viewAll}>
+          <Text style={styles.viewAllText}>View all devices</Text>
+          <MaterialCommunityIcons name="chevron-right" size={20} color={Palette.accent} />
         </Pressable>
       </Link>
     </ScrollView>
@@ -103,20 +136,35 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.background,
   },
   content: {
-    paddingHorizontal: 22,
-    paddingTop: 24,
-    paddingBottom: 32,
-    gap: 14,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 36,
+    gap: 16,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  titleText: {
+    gap: 2,
+  },
+  eyebrow: {
+    fontSize: 14,
+    color: Palette.muted,
+  },
   title: {
-    fontSize: 30,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '700',
     color: Palette.text,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Palette.surface,
   },
   gatewayRow: {
     flexDirection: 'row',
@@ -124,60 +172,96 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
   },
   gatewayText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
     color: Palette.muted,
   },
-  thermostat: {
-    // Matches the 405x358 proportion of the reference design.
-    aspectRatio: 1.13,
-    alignItems: 'center',
-    justifyContent: 'center',
+  hero: {
     gap: 8,
-    paddingVertical: 24,
-    borderRadius: 14,
+    padding: 22,
+    borderRadius: 28,
     borderWidth: 1,
     borderColor: Palette.outline,
-    backgroundColor: Palette.surface,
+    backgroundColor: Palette.surfaceRaised,
+    experimental_backgroundImage: 'linear-gradient(160deg, #1F2D44 0%, #162030 100%)',
+    boxShadow: Shadow.card,
   },
-  temperature: {
-    fontSize: 62,
-    fontWeight: '800',
-    color: Palette.text,
+  heroTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   room: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '500',
+    color: Palette.muted,
+  },
+  heroReading: {
+    minHeight: 80,
+    justifyContent: 'center',
+  },
+  temperature: {
+    fontSize: 60,
+    fontWeight: '200',
     color: Palette.text,
   },
-  subReading: {
+  heroStats: {
+    flexDirection: 'row',
+    gap: 24,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: Palette.divider,
+  },
+  stat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  statValue: {
     fontSize: 14,
-    color: Palette.muted,
+    fontWeight: '600',
+    color: Palette.text,
+  },
+  statLabel: {
+    fontSize: 13,
+    color: Palette.subtle,
+  },
+  sectionTitle: {
+    marginTop: 8,
+    fontSize: 17,
+    fontWeight: '600',
+    color: Palette.text,
   },
   loading: {
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '600',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 28,
+  },
+  loadingText: {
+    fontSize: 15,
     color: Palette.muted,
-    paddingVertical: 24,
   },
   grid: {
-    gap: 12,
+    gap: 14,
   },
   gridRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 14,
   },
   viewAll: {
-    marginTop: 14,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
-    color: Palette.text,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    minHeight: 48,
+  },
+  viewAllText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Palette.accent,
   },
 });

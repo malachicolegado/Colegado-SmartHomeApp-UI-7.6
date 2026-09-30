@@ -1,11 +1,16 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { GatewayBanner } from '@/components/gateway-banner';
 import { SensorCard } from '@/components/sensor-card';
 import { StatusBanner } from '@/components/status-banner';
-import { Palette } from '@/constants/smart-home';
+import { HomeRoom, Palette, Shadow } from '@/constants/smart-home';
 import { formatTemperature, useIoT } from '@/context/IoTContext';
+
+// Upper bounds used to fill each sensor's meter bar.
+const MAX_TEMPERATURE_C = 45;
+const MAX_HUMIDITY = 100;
+const MAX_LIGHT_LUX = 1000;
 
 export default function SensorsScreen() {
   const { sensorData, sensorsLoading, sensorsError, gatewayConnected, temperatureUnit, refreshSensors } =
@@ -15,7 +20,10 @@ export default function SensorsScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Sensors</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Sensors</Text>
+        <Text style={styles.subtitle}>Live readings from the {HomeRoom}</Text>
+      </View>
 
       <GatewayBanner />
 
@@ -26,18 +34,21 @@ export default function SensorsScreen() {
       <View style={styles.cards}>
         <SensorCard
           label="Temperature"
-          icon="thermometer-outline"
+          icon="thermometer"
           value={sensorData ? formatTemperature(sensorData.temperature, temperatureUnit) : '--'}
+          progress={sensorData ? sensorData.temperature / MAX_TEMPERATURE_C : 0}
         />
         <SensorCard
           label="Humidity"
-          icon="water-outline"
+          icon="water-percent"
           value={sensorData ? `${sensorData.humidity} %` : '--'}
+          progress={sensorData ? sensorData.humidity / MAX_HUMIDITY : 0}
         />
         <SensorCard
           label="Light Level"
-          icon="sunny-outline"
+          icon="white-balance-sunny"
           value={sensorData ? `${sensorData.lightLevel} lux` : '--'}
+          progress={sensorData ? sensorData.lightLevel / MAX_LIGHT_LUX : 0}
         />
       </View>
 
@@ -46,9 +57,9 @@ export default function SensorsScreen() {
         disabled={refreshDisabled}
         style={({ pressed }) => [styles.button, (pressed || refreshDisabled) && styles.dimmed]}>
         {sensorsLoading ? (
-          <ActivityIndicator color={Palette.header} />
+          <ActivityIndicator color={Palette.onAccent} />
         ) : (
-          <Ionicons name="refresh" size={20} color={Palette.header} />
+          <MaterialCommunityIcons name="refresh" size={20} color={Palette.onAccent} />
         )}
         <Text style={styles.buttonText}>
           {sensorsLoading ? 'Refreshing Sensors...' : 'Refresh Sensors'}
@@ -64,34 +75,43 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.background,
   },
   content: {
-    paddingHorizontal: 22,
-    paddingTop: 24,
-    paddingBottom: 32,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 36,
     gap: 16,
   },
+  header: {
+    gap: 4,
+  },
   title: {
-    fontSize: 30,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '700',
     color: Palette.text,
   },
+  subtitle: {
+    fontSize: 14,
+    color: Palette.muted,
+  },
   cards: {
-    gap: 12,
+    gap: 14,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    minHeight: 54,
-    borderRadius: 14,
-    backgroundColor: Palette.text,
+    gap: 8,
+    minHeight: 52,
+    marginTop: 4,
+    borderRadius: 999,
+    backgroundColor: Palette.accent,
+    boxShadow: Shadow.card,
   },
   buttonText: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: Palette.header,
+    fontSize: 15,
+    fontWeight: '600',
+    color: Palette.onAccent,
   },
   dimmed: {
-    opacity: 0.6,
+    opacity: 0.55,
   },
 });

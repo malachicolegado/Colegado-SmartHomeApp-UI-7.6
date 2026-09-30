@@ -1,7 +1,8 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/constants/smart-home';
+import { IconBadge } from '@/components/icon-badge';
+import { NeonSwitch } from '@/components/neon-switch';
+import { Palette, Shadow, glow, withAlpha } from '@/constants/smart-home';
 import type { Device } from '@/models/IoTModels';
 
 type Props = {
@@ -13,37 +14,34 @@ type Props = {
 };
 
 export function DeviceRow({ device, updating, disabled, error, onToggle }: Props) {
+  const on = device.status;
+
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        on && {
+          borderColor: withAlpha(Palette.accent, 0.3),
+          boxShadow: `${Shadow.card}, ${glow(Palette.accent)}`,
+        },
+      ]}>
       <View style={styles.row}>
-        <View style={styles.iconWrap}>
-          <Ionicons name={device.icon} size={26} color={Palette.text} />
-        </View>
+        <IconBadge name={device.icon} active={on} size={48} />
         <View style={styles.labels}>
           <Text style={styles.name}>{device.name}</Text>
-          <Text style={styles.type}>{device.type}</Text>
-        </View>
-        <View style={styles.control}>
-          <Text style={[styles.status, updating && styles.updating]}>
-            {updating ? 'Updating...' : device.status ? 'ON' : 'OFF'}
+          <Text style={styles.type}>
+            {device.type} · {updating ? 'Updating...' : on ? 'On' : 'Off'}
           </Text>
-          <Switch
-            value={device.status}
-            onValueChange={onToggle}
-            disabled={disabled || updating}
-            trackColor={{ false: Palette.track, true: Palette.accent }}
-            thumbColor="#FAFAFA"
-            ios_backgroundColor={Palette.track}
-          />
         </View>
+        <NeonSwitch value={on} onValueChange={onToggle} disabled={disabled || updating} />
       </View>
 
       {error ? (
         <View style={styles.errorRow}>
           <Text style={styles.errorText}>{error}</Text>
           {!disabled ? (
-            <Pressable hitSlop={8} onPress={() => onToggle(!device.status)}>
-              <Text style={styles.retry}>Retry</Text>
+            <Pressable hitSlop={8} onPress={() => onToggle(!on)}>
+              <Text style={styles.retryText}>Retry</Text>
             </Pressable>
           ) : null}
         </View>
@@ -54,71 +52,51 @@ export function DeviceRow({ device, updating, disabled, error, onToggle }: Props
 
 const styles = StyleSheet.create({
   card: {
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: Palette.outline,
     backgroundColor: Palette.surface,
-    gap: 10,
+    boxShadow: Shadow.card,
+    gap: 12,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    minHeight: 60,
-  },
-  iconWrap: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Palette.outline,
-    backgroundColor: Palette.header,
+    minHeight: 56,
   },
   labels: {
     flex: 1,
-    gap: 4,
+    gap: 3,
   },
   name: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: Palette.text,
   },
   type: {
-    fontSize: 14,
+    fontSize: 13,
     color: Palette.muted,
-  },
-  control: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  status: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Palette.text,
-  },
-  updating: {
-    color: Palette.accent,
   },
   errorRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: Palette.divider,
   },
   errorText: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
     color: Palette.danger,
   },
-  retry: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Palette.text,
-    textDecorationLine: 'underline',
+  retryText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Palette.accent,
   },
 });

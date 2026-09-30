@@ -1,7 +1,7 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/constants/smart-home';
+import { Palette, withAlpha } from '@/constants/smart-home';
 
 type Props = {
   message: string;
@@ -20,21 +20,23 @@ export function StatusBanner({
   busy = false,
   onAction,
 }: Props) {
+  const color = tone === 'warning' ? Palette.warning : Palette.danger;
+
   return (
-    <View style={[styles.banner, tone === 'warning' ? styles.warning : styles.error]}>
-      <Ionicons
-        name={tone === 'warning' ? 'cloud-offline-outline' : 'alert-circle-outline'}
-        size={22}
-        color={tone === 'warning' ? Palette.text : Palette.danger}
+    <View style={[styles.banner, { borderColor: withAlpha(color, 0.3), backgroundColor: withAlpha(color, 0.06) }]}>
+      <MaterialCommunityIcons
+        name={tone === 'warning' ? 'wifi-off' : 'alert-circle-outline'}
+        size={20}
+        color={color}
       />
-      <Text style={[styles.message, tone === 'error' && styles.errorText]}>{message}</Text>
+      <Text style={styles.message}>{message}</Text>
       {onAction ? (
         <Pressable
           onPress={onAction}
           disabled={busy}
           hitSlop={8}
           style={({ pressed }) => [styles.action, (pressed || busy) && styles.dimmed]}>
-          {busy ? <ActivityIndicator size="small" color={Palette.text} /> : null}
+          {busy ? <ActivityIndicator size="small" color={Palette.accent} /> : null}
           <Text style={styles.actionText}>{busy ? (busyLabel ?? actionLabel) : actionLabel}</Text>
         </Pressable>
       ) : null}
@@ -49,24 +51,13 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Palette.outline,
-  },
-  error: {
-    backgroundColor: Palette.dangerSurface,
-  },
-  warning: {
-    backgroundColor: Palette.warningSurface,
   },
   message: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
     color: Palette.text,
-  },
-  errorText: {
-    color: Palette.danger,
   },
   action: {
     flexDirection: 'row',
@@ -74,15 +65,13 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Palette.outline,
-    backgroundColor: Palette.header,
+    borderRadius: 999,
+    backgroundColor: Palette.surfaceRaised,
   },
   actionText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Palette.text,
+    fontSize: 13,
+    fontWeight: '600',
+    color: Palette.accent,
   },
   dimmed: {
     opacity: 0.6,

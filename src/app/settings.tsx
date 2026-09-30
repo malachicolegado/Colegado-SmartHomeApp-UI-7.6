@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { NeonSwitch } from '@/components/neon-switch';
 import { SettingRow } from '@/components/setting-row';
 import { StatusBanner } from '@/components/status-banner';
-import { Palette } from '@/constants/smart-home';
+import { Palette, Shadow } from '@/constants/smart-home';
 import { useIoT } from '@/context/IoTContext';
+
+const TEMPERATURE_UNITS = ['°C', '°F'] as const;
 
 export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(false);
@@ -20,39 +23,50 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Settings</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Settings</Text>
+        <Text style={styles.subtitle}>Connection and display preferences</Text>
+      </View>
 
-      <View style={styles.rows}>
+      <View style={styles.group}>
         <SettingRow
           label="IoT Gateway"
+          icon="router-wireless"
+          active={gatewayConnected}
           hint={gatewayConnecting ? 'Connecting...' : gatewayConnected ? 'Connected' : 'Disconnected'}>
           {gatewayConnecting ? (
-            <ActivityIndicator color={Palette.text} />
+            <ActivityIndicator color={Palette.accent} />
           ) : (
-            <Switch
+            <NeonSwitch
               value={gatewayConnected}
               onValueChange={(on) => (on ? connectGateway() : disconnectGateway())}
-              trackColor={{ false: Palette.track, true: Palette.accent }}
-              thumbColor="#FAFAFA"
-              ios_backgroundColor={Palette.track}
             />
           )}
         </SettingRow>
 
-        <SettingRow label="Notifications">
-          <Switch
-            value={notifications}
-            onValueChange={setNotifications}
-            trackColor={{ false: Palette.track, true: Palette.accent }}
-            thumbColor="#FAFAFA"
-            ios_backgroundColor={Palette.track}
-          />
+        <SettingRow
+          label="Notifications"
+          icon="bell-outline"
+          active={notifications}
+          hint={notifications ? 'Alerts on' : 'Alerts muted'}>
+          <NeonSwitch value={notifications} onValueChange={setNotifications} />
         </SettingRow>
 
-        <SettingRow label="Temperature Unit">
-          <Pressable hitSlop={12} onPress={toggleTemperatureUnit}>
-            <Text style={styles.value}>{temperatureUnit}</Text>
-          </Pressable>
+        <SettingRow label="Temperature Unit" icon="thermometer" last>
+          <View style={styles.segment}>
+            {TEMPERATURE_UNITS.map((unit) => {
+              const selected = unit === temperatureUnit;
+              return (
+                <Pressable
+                  key={unit}
+                  hitSlop={6}
+                  onPress={selected ? undefined : toggleTemperatureUnit}
+                  style={[styles.segmentItem, selected && styles.segmentSelected]}>
+                  <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>{unit}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </SettingRow>
       </View>
 
@@ -69,22 +83,51 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.background,
   },
   content: {
-    paddingHorizontal: 22,
-    paddingTop: 24,
-    paddingBottom: 32,
-    gap: 24,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 36,
+    gap: 20,
+  },
+  header: {
+    gap: 4,
   },
   title: {
-    fontSize: 30,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '700',
     color: Palette.text,
   },
-  rows: {
-    marginTop: 16,
+  subtitle: {
+    fontSize: 14,
+    color: Palette.muted,
   },
-  value: {
-    fontSize: 15,
-    fontWeight: '700',
+  group: {
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: Palette.outline,
+    backgroundColor: Palette.surface,
+    boxShadow: Shadow.card,
+    overflow: 'hidden',
+  },
+  segment: {
+    flexDirection: 'row',
+    padding: 3,
+    borderRadius: 999,
+    backgroundColor: Palette.background,
+  },
+  segmentItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  segmentSelected: {
+    backgroundColor: Palette.surfaceRaised,
+  },
+  segmentText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Palette.subtle,
+  },
+  segmentTextSelected: {
     color: Palette.text,
   },
 });

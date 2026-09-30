@@ -1,10 +1,10 @@
-import type Ionicons from '@expo/vector-icons/Ionicons';
+import type MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 export type Device = {
   id: number;
   name: string;
   type: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
   status: boolean;
 };
 
@@ -15,11 +15,11 @@ export type SensorData = {
 };
 
 export const sampleDevices: Device[] = [
-  { id: 1, name: 'Living Room Light', type: 'Smart Light', icon: 'bulb-outline', status: true },
-  { id: 2, name: 'Bedroom Fan', type: 'Smart Fan', icon: 'sync-outline', status: false },
-  { id: 3, name: 'Front Door Lock', type: 'Smart Lock', icon: 'lock-closed-outline', status: true },
-  { id: 4, name: 'Security Camera', type: 'Camera', icon: 'videocam-outline', status: true },
-  { id: 5, name: 'Air Conditioner', type: 'Climate', icon: 'snow-outline', status: false },
+  { id: 1, name: 'Living Room Light', type: 'Smart Light', icon: 'lightbulb-on-outline', status: true },
+  { id: 2, name: 'Bedroom Fan', type: 'Smart Fan', icon: 'fan', status: false },
+  { id: 3, name: 'Front Door Lock', type: 'Smart Lock', icon: 'shield-lock-outline', status: true },
+  { id: 4, name: 'Security Camera', type: 'Camera', icon: 'cctv', status: true },
+  { id: 5, name: 'Air Conditioner', type: 'Climate', icon: 'air-conditioner', status: false },
 ];
 
 export const sampleSensorData: SensorData = {
